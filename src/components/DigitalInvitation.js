@@ -13,6 +13,15 @@ const DigitalInvitation = () => {
   const [showDownload, setShowDownload] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideoMinimized, setIsVideoMinimized] = useState(false);
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [videoPosition, setVideoPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [videoSize, setVideoSize] = useState({ width: 200, height: 150 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeDirection, setResizeDirection] = useState('');
 
   const pages = [
     {
@@ -76,9 +85,154 @@ const DigitalInvitation = () => {
     setIsVideoPlaying(true);
   };
 
+  const handleVideoPause = () => {
+    setIsVideoPlaying(false);
+  };
+
+  const handleVideoMute = () => {
+    setIsVideoMuted(!isVideoMuted);
+  };
+
+  const handleVideoMinimize = () => {
+    setIsVideoMinimized(!isVideoMinimized);
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.target.classList.contains('resize-handle')) return;
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging) {
+      setVideoPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+    if (isResizing) {
+      let newWidth = resizeStart.width;
+      let newHeight = resizeStart.height;
+      
+      if (resizeDirection.includes('e')) {
+        newWidth = Math.max(150, Math.min(600, resizeStart.width + (e.clientX - resizeStart.x)));
+      }
+      if (resizeDirection.includes('w')) {
+        newWidth = Math.max(150, Math.min(600, resizeStart.width - (e.clientX - resizeStart.x)));
+      }
+      if (resizeDirection.includes('s')) {
+        newHeight = Math.max(100, Math.min(450, resizeStart.height + (e.clientY - resizeStart.y)));
+      }
+      if (resizeDirection.includes('n')) {
+        newHeight = Math.max(100, Math.min(450, resizeStart.height - (e.clientY - resizeStart.y)));
+      }
+      
+      setVideoSize({ width: newWidth, height: newHeight });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+  };
+
+  const handleResizeStart = (e, direction) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeDirection(direction);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: videoSize.width,
+      height: videoSize.height
+    });
+  };
+
+  // Touch events for mobile
+  const handleTouchStart = (e) => {
+    if (e.target.classList.contains('resize-handle')) return;
+    const touch = e.touches[0];
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    if (isDragging) {
+      const touch = e.touches[0];
+      setVideoPosition({
+        x: touch.clientX - dragOffset.x,
+        y: touch.clientY - dragOffset.y
+      });
+    }
+    if (isResizing) {
+      const touch = e.touches[0];
+      let newWidth = resizeStart.width;
+      let newHeight = resizeStart.height;
+      
+      if (resizeDirection.includes('e')) {
+        newWidth = Math.max(150, Math.min(600, resizeStart.width + (touch.clientX - resizeStart.x)));
+      }
+      if (resizeDirection.includes('w')) {
+        newWidth = Math.max(150, Math.min(600, resizeStart.width - (touch.clientX - resizeStart.x)));
+      }
+      if (resizeDirection.includes('s')) {
+        newHeight = Math.max(100, Math.min(450, resizeStart.height + (touch.clientY - resizeStart.y)));
+      }
+      if (resizeDirection.includes('n')) {
+        newHeight = Math.max(100, Math.min(450, resizeStart.height - (touch.clientY - resizeStart.y)));
+      }
+      
+      setVideoSize({ width: newWidth, height: newHeight });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+  };
+
+  const handleResizeTouchStart = (e, direction) => {
+    e.stopPropagation();
+    const touch = e.touches[0];
+    setIsResizing(true);
+    setResizeDirection(direction);
+    setResizeStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      width: videoSize.width,
+      height: videoSize.height
+    });
+  };
+
+  // Add event listeners for dragging and resizing
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchend', handleTouchEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isDragging, isResizing, dragOffset, resizeStart]);
+
   // Handle mounting only
   useEffect(() => {
     setIsMounted(true);
+    // Set initial position for video (bottom right)
+    setVideoPosition({ x: window.innerWidth - 250, y: window.innerHeight - 200 });
   }, []);
 
   // Show loading state during hydration
@@ -144,48 +298,215 @@ const DigitalInvitation = () => {
         </div>
       )}
 
-      {/* Floating video - Always visible and looping */}
-      <div className="fixed bottom-4 right-4 z-30">
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-lg">
-          <div className="relative rounded-lg overflow-hidden" style={{ maxWidth: '280px' }}>
-            <video 
-              ref={(video) => {
-                if (video && isVideoPlaying) {
-                  video.play();
-                }
-              }}
-              loop 
-              playsInline
-              className="w-full h-96 object-cover"
-              volume={0.3}
-              poster="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.jpg"
+      {/* Floating video - Draggable, resizable and minimizable */}
+      <motion.div 
+        className="fixed z-30 cursor-move"
+        style={{
+          left: videoPosition.x,
+          top: videoPosition.y,
+          transform: isDragging ? 'scale(1.05)' : 'scale(1)'
+        }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {isVideoMinimized ? (
+          // Minimized state - horizontal bar
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-full p-2 border-2 border-purple-200 shadow-lg flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={isVideoPlaying ? handleVideoPause : handleVideoPlay}
+              className="bg-white/90 text-purple-600 rounded-full p-1 shadow-sm"
             >
-              <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/quicktime" />
-              <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/mp4" />
-            </video>
+              {isVideoPlaying ? (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              )}
+            </motion.button>
             
-            {/* Play button overlay */}
-            {!isVideoPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <span className="text-xs font-be-vietnam text-purple-700">15s</span>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleVideoMute}
+              className="bg-white/90 text-purple-600 rounded-full p-1 shadow-sm"
+            >
+              {isVideoMuted ? (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              )}
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleVideoMinimize}
+              className="bg-white/90 text-purple-600 rounded-full p-1 shadow-sm"
+            >
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 13H5v-2h14v2z"/>
+              </svg>
+            </motion.button>
+          </div>
+        ) : (
+          // Full video player
+          <div 
+            className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border-2 border-purple-200 shadow-lg relative"
+            style={{ width: videoSize.width, height: videoSize.height + 24 }}
+          >
+            <div className="relative rounded-lg overflow-hidden w-full h-full">
+              <video 
+                ref={(video) => {
+                  if (video) {
+                    video.muted = isVideoMuted;
+                    if (isVideoPlaying) {
+                      video.play();
+                    } else {
+                      video.pause();
+                    }
+                  }
+                }}
+                loop 
+                playsInline
+                className="w-full h-full object-cover"
+                poster="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.jpg"
+              >
+                <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/quicktime" />
+                <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/mp4" />
+              </video>
+              
+              {/* Video controls overlay */}
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={handleVideoPlay}
-                  className="bg-white/90 text-purple-600 rounded-full p-4 shadow-lg hover:bg-white transition-colors duration-300"
+                  onClick={isVideoPlaying ? handleVideoPause : handleVideoPlay}
+                  className="bg-white/90 text-purple-600 rounded-full p-3 shadow-lg hover:bg-white transition-colors duration-300"
                 >
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
+                  {isVideoPlaying ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  )}
+                </motion.button>
+              </div>
+              
+              {/* Control buttons */}
+              <div className="absolute top-2 right-2 flex gap-1">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleVideoMute}
+                  className="bg-black/50 text-white rounded-full p-1 shadow-sm"
+                >
+                  {isVideoMuted ? (
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                  )}
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleVideoMinimize}
+                  className="bg-black/50 text-white rounded-full p-1 shadow-sm"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 13H5v-2h14v2z"/>
                   </svg>
                 </motion.button>
               </div>
-            )}
+              
+              <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs font-be-vietnam">
+                15s {isVideoMuted ? '🔇' : '🔊'}
+              </div>
+            </div>
             
-            <div className="absolute top-3 right-3 bg-black/50 text-white px-3 py-1 rounded text-base font-be-vietnam">
-              15s 🔊
+            {/* Resize handles - 4 corners */}
+            {/* Top-left */}
+            <div 
+              className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize resize-handle"
+              onMouseDown={(e) => handleResizeStart(e, 'nw')}
+              onTouchStart={(e) => handleResizeTouchStart(e, 'nw')}
+              style={{
+                background: 'linear-gradient(135deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
+                borderRadius: '8px 0 0 0'
+              }}
+            >
+              <div className="w-full h-full flex items-start justify-start">
+                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+              </div>
+            </div>
+
+            {/* Top-right */}
+            <div 
+              className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize resize-handle"
+              onMouseDown={(e) => handleResizeStart(e, 'ne')}
+              onTouchStart={(e) => handleResizeTouchStart(e, 'ne')}
+              style={{
+                background: 'linear-gradient(-135deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
+                borderRadius: '0 8px 0 0'
+              }}
+            >
+              <div className="w-full h-full flex items-start justify-end">
+                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+              </div>
+            </div>
+
+            {/* Bottom-left */}
+            <div 
+              className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize resize-handle"
+              onMouseDown={(e) => handleResizeStart(e, 'sw')}
+              onTouchStart={(e) => handleResizeTouchStart(e, 'sw')}
+              style={{
+                background: 'linear-gradient(45deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
+                borderRadius: '0 0 0 8px'
+              }}
+            >
+              <div className="w-full h-full flex items-end justify-start">
+                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+              </div>
+            </div>
+
+            {/* Bottom-right */}
+            <div 
+              className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize resize-handle"
+              onMouseDown={(e) => handleResizeStart(e, 'se')}
+              onTouchStart={(e) => handleResizeTouchStart(e, 'se')}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
+                borderRadius: '0 0 8px 0'
+              }}
+            >
+              <div className="w-full h-full flex items-end justify-end">
+                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
+      </motion.div>
 
       {/* Closed invitation card */}
       <AnimatePresence>
@@ -357,8 +678,8 @@ const DigitalInvitation = () => {
                   </div>
                 </div>
 
-                {/* Content based on current page */}
-                <div className="p-6 md:p-8 max-h-[600px] overflow-y-auto invitation-scroll">
+                 {/* Content based on current page */}
+                 <div className="p-4 sm:p-6 md:p-8 max-h-[500px] sm:max-h-[600px] overflow-y-auto invitation-scroll pb-20 sm:pb-8">
                   <AnimatePresence mode="wait">
                     {currentPage === 0 && (
                       <motion.div
@@ -482,8 +803,8 @@ const DigitalInvitation = () => {
                         </p>
 
 
-                        {/* Photo grid - All 18 memories */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+                         {/* Photo grid - All 18 memories */}
+                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 mb-6">
                           {[
                             { src: '/1D80D4D1-3BEA-4867-A4F2-BFAFA991C5CE.jpg', label: 'Coffe time' },
                             { src: '/2AC239C5-E7BE-4515-92AB-B3243ADF1C15.jpg', label: '"Em bé ngây thơ"' },
@@ -558,7 +879,7 @@ const DigitalInvitation = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -582,8 +903,8 @@ const DigitalInvitation = () => {
                   </AnimatePresence>
                 </div>
 
-                {/* Navigation */}
-                <div className="flex justify-between items-center p-6 bg-slate-50 border-t border-slate-200">
+                 {/* Navigation */}
+                 <div className="flex justify-between items-center p-4 sm:p-6 bg-slate-50 border-t border-slate-200">
                   <motion.button
                     onClick={prevPage}
                     disabled={currentPage === 0}
