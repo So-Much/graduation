@@ -12,6 +12,8 @@ const DigitalInvitation = () => {
   const [isOpening, setIsOpening] = useState(false);
   const [showDownload, setShowDownload] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   const pages = [
     {
@@ -69,6 +71,24 @@ const DigitalInvitation = () => {
 
   const handleDownloadInvitation = () => {
     setShowDownload(true);
+  };
+
+  const handleVideoPlay = () => {
+    setIsVideoPlaying(true);
+  };
+
+  const handleVideoError = () => {
+    setVideoError(true);
+  };
+
+  const handleVideoLoad = () => {
+    // Thử autoplay khi video load
+    const video = document.querySelector('video');
+    if (video) {
+      video.play().catch(() => {
+        setVideoError(true);
+      });
+    }
   };
 
   // Handle mounting only
@@ -144,15 +164,39 @@ const DigitalInvitation = () => {
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-lg">
           <div className="relative rounded-lg overflow-hidden" style={{ maxWidth: '280px' }}>
             <video 
-              autoPlay 
-              loop 
+              ref={(video) => {
+                if (video && isVideoPlaying) {
+                  video.play();
+                }
+              }}
+              onLoadedData={handleVideoLoad}
+              onError={handleVideoError}
+              loop
               playsInline
               className="w-full h-96 object-cover"
               volume={0.3}
+              poster="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.jpg"
             >
               <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/quicktime" />
               <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/mp4" />
             </video>
+            
+            {/* Play button overlay - hiển thị khi không autoplay được */}
+            {(!isVideoPlaying || videoError) && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleVideoPlay}
+                  className="bg-white/90 text-purple-600 rounded-full p-4 shadow-lg hover:bg-white transition-colors duration-300"
+                >
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </motion.button>
+              </div>
+            )}
+            
             <div className="absolute top-3 right-3 bg-black/50 text-white px-3 py-1 rounded text-base font-be-vietnam">
               15s 🔊
             </div>
