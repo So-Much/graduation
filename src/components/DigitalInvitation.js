@@ -13,7 +13,6 @@ const DigitalInvitation = () => {
   const [showDownload, setShowDownload] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [videoError, setVideoError] = useState(false);
 
   const pages = [
     {
@@ -75,20 +74,6 @@ const DigitalInvitation = () => {
 
   const handleVideoPlay = () => {
     setIsVideoPlaying(true);
-  };
-
-  const handleVideoError = () => {
-    setVideoError(true);
-  };
-
-  const handleVideoLoad = () => {
-    // Thử autoplay khi video load
-    const video = document.querySelector('video');
-    if (video) {
-      video.play().catch(() => {
-        setVideoError(true);
-      });
-    }
   };
 
   // Handle mounting only
@@ -169,9 +154,7 @@ const DigitalInvitation = () => {
                   video.play();
                 }
               }}
-              onLoadedData={handleVideoLoad}
-              onError={handleVideoError}
-              loop
+              loop 
               playsInline
               className="w-full h-96 object-cover"
               volume={0.3}
@@ -181,8 +164,8 @@ const DigitalInvitation = () => {
               <source src="/53A53D3D-7F69-4C3D-BFE8-98BAE4BD8F85.mov" type="video/mp4" />
             </video>
             
-            {/* Play button overlay - hiển thị khi không autoplay được */}
-            {(!isVideoPlaying || videoError) && (
+            {/* Play button overlay */}
+            {!isVideoPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
