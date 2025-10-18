@@ -1,0 +1,27 @@
+{
+  "name": "Lưu Minh Nhiều - Hành Trình Tốt Nghiệp",
+  "short_name": "Thiệp Mời Tốt Nghiệp",
+  "description": "Tổng hợp quá trình học tập và thiệp mời tốt nghiệp của Lưu Minh Nhiều - Đại học Tôn Đức Thắng",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["education", "lifestyle", "social"],
+  "lang": "vi",
+  "dir": "ltr"
+}
