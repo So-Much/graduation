@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Download, Heart, Sparkles, Star, GraduationCap, Calendar, MapPin, Clock, X } from 'lucide-react';
+import { ChevronRight, Download, Heart, Sparkles, Star, GraduationCap, Calendar, MapPin, Clock, X, ChevronLeft } from 'lucide-react';
 import InvitationDownload from './InvitationDownload';
 
 const DigitalInvitation = () => {
@@ -623,23 +623,46 @@ const DigitalInvitation = () => {
               {/* Card shadow */}
               <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
               
+              {/* Decorative sparkles */}
+              <div className="absolute top-4 right-4 animate-sparkle">
+                <Star className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="absolute bottom-6 left-6 animate-sparkle" style={{ animationDelay: '0.5s' }}>
+                <Star className="w-3 h-3 text-yellow-400" />
+              </div>
+              <div className="absolute top-1/2 left-4 animate-sparkle" style={{ animationDelay: '1s' }}>
+                <Star className="w-2 h-2 text-amber-300" />
+              </div>
+              
               {/* Main card */}
               <div className="relative bg-gradient-to-br from-white via-amber-50 to-yellow-50 rounded-3xl p-6 sm:p-8 md:p-12 card-shadow golden-border luxury-glow paper-texture max-w-md w-full mobile-safe-area">
                 {/* Ribbon decoration */}
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
-                    Lễ Tốt Nghiệp
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 animate-float-gentle">
+                  <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg animate-shimmer-effect relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer-effect"></div>
+                    <span className="relative z-10">🎓 Lễ Tốt Nghiệp</span>
                   </div>
                 </div>
 
                 {/* Card content */}
                 <div className="text-center pt-4">
                   <motion.div
-                    animate={{ rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="mb-6"
+                    animate={{ 
+                      rotate: [0, 5, -5, 0],
+                      scale: [1, 1.1, 1],
+                      y: [0, -5, 0]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    className="mb-6 relative"
                   >
-                    <GraduationCap className="w-16 h-16 text-amber-600 mx-auto" />
+                    <GraduationCap className="w-16 h-16 text-amber-600 mx-auto animate-glow-pulse" />
+                    {/* Floating particles around cap */}
+                    <div className="absolute -top-2 -right-2 animate-bounce-gentle">
+                      <Sparkles className="w-4 h-4 text-yellow-400" />
+                    </div>
+                    <div className="absolute -bottom-1 -left-2 animate-bounce-gentle" style={{ animationDelay: '0.5s' }}>
+                      <Star className="w-3 h-3 text-amber-400" />
+                    </div>
                   </motion.div>
                   
                   <h1 className="text-3xl font-bold text-slate-800 mb-2 font-dancing handwritten-shadow">
@@ -651,7 +674,7 @@ const DigitalInvitation = () => {
                   </p>
                   
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     animate={{ 
                       scale: [1, 1.05, 1],
@@ -663,16 +686,27 @@ const DigitalInvitation = () => {
                     }}
                     transition={{ duration: 2, repeat: Infinity }}
                     onClick={openInvitation}
-                    className="inline-flex items-center bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative overflow-hidden"
+                    className="inline-flex items-center bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative overflow-hidden group"
                   >
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="mr-2"
+                      className="mr-2 relative z-10"
                     >
                       <Sparkles className="w-5 h-5" />
                     </motion.div>
-                    Nhấn để xem thiệp
+                    <span className="relative z-10">✨ Nhấn để xem thiệp</span>
+                    
+                    {/* Floating sparkles around button */}
+                    <div className="absolute -top-1 -right-1 animate-sparkle">
+                      <Star className="w-3 h-3 text-white/60" />
+                    </div>
+                    <div className="absolute -bottom-1 -left-1 animate-sparkle" style={{ animationDelay: '0.7s' }}>
+                      <Star className="w-2 h-2 text-white/60" />
+                    </div>
                   </motion.button>
                 </div>
               </div>
@@ -730,29 +764,56 @@ const DigitalInvitation = () => {
                 </motion.button>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 text-white p-4 sm:p-6 md:p-8 relative flex-shrink-0">
-                  {/* Confetti animation */}
+                  {/* Enhanced confetti animation */}
                   <div className="absolute inset-0 overflow-hidden">
-                    {[...Array(8)].map((_, i) => (
+                    {[...Array(12)].map((_, i) => (
                       <motion.div
                         key={i}
                         animate={{
-                          y: [-20, -100],
-                          x: [0, (i % 3) * 20 - 20],
+                          y: [-20, -120],
+                          x: [0, (i % 4) * 30 - 45],
                           rotate: [0, 360],
-                          opacity: [1, 0]
+                          opacity: [1, 0],
+                          scale: [1, 1.2, 0.8]
+                        }}
+                        transition={{
+                          duration: 4,
+                          repeat: Infinity,
+                          delay: i * 0.3,
+                          ease: "easeOut"
+                        }}
+                        className="absolute w-2 h-2 bg-amber-400 rounded-full"
+                        style={{
+                          left: `${15 + (i * 7)}%`,
+                          top: '100%'
+                        }}
+                      />
+                    ))}
+                    
+                    {/* Floating stars */}
+                    {[...Array(6)].map((_, i) => (
+                      <motion.div
+                        key={`star-${i}`}
+                        animate={{
+                          y: [0, -20, 0],
+                          x: [0, 10, 0],
+                          rotate: [0, 180, 360],
+                          opacity: [0.3, 0.8, 0.3]
                         }}
                         transition={{
                           duration: 3,
                           repeat: Infinity,
                           delay: i * 0.5,
-                          ease: "easeOut"
+                          ease: "easeInOut"
                         }}
-                        className="absolute w-3 h-3 bg-amber-400 rounded-full"
+                        className="absolute"
                         style={{
-                          left: `${20 + i * 10}%`,
-                          top: '100%'
+                          left: `${10 + (i * 15)}%`,
+                          top: `${20 + (i % 3) * 20}%`
                         }}
-                      />
+                      >
+                        <Star className="w-3 h-3 text-amber-300" />
+                      </motion.div>
                     ))}
                   </div>
 
@@ -861,19 +922,19 @@ const DigitalInvitation = () => {
                           </h4>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
-                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Full-Stack</h5>
+                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Full-Stack Web</h5>
                               <p className="text-xs text-slate-600 font-be-vietnam">ReactJS, VueJS, NextJS</p>
                             </div>
                             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
-                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Mobile</h5>
+                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Mobile Developer</h5>
                               <p className="text-xs text-slate-600 font-be-vietnam">Java Mobile App</p>
                             </div>
                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-200">
-                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Database</h5>
+                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Database Designer</h5>
                               <p className="text-xs text-slate-600 font-be-vietnam">MongoDB, MySQL</p>
                             </div>
                             <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-3 border border-orange-200">
-                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Goal</h5>
+                              <h5 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Goals</h5>
                               <p className="text-xs text-slate-600 font-be-vietnam">Junior → Senior 🚀</p>
                             </div>
                           </div>
@@ -985,21 +1046,23 @@ const DigitalInvitation = () => {
 
                          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={handleConfirmAttendance}
-                            className="bg-gradient-to-r from-blue-800 to-slate-800 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 font-be-vietnam"
+                            className="bg-gradient-to-r from-blue-800 to-slate-800 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 font-be-vietnam justify-center relative overflow-hidden group"
                           >
-                            Mình sẽ đến! 🎉
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                            <span className="relative z-10">🎉 Mình sẽ đến!</span>
                           </motion.button>
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={handleDownloadInvitation}
-                            className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 font-be-vietnam flex items-center gap-2"
+                            className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 font-be-vietnam flex items-center gap-2 justify-center relative overflow-hidden group"
                           >
-                            <Download className="w-4 h-4" />
-                            Lưu thiệp
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                            <Download className="w-4 h-4 relative z-10" />
+                            <span className="relative z-10">💾 Lưu thiệp</span>
                           </motion.button>
                         </div>
                       </motion.div>
@@ -1010,15 +1073,21 @@ const DigitalInvitation = () => {
                  {/* Navigation */}
                  <div className="flex justify-between items-center p-4 sm:p-6 bg-slate-50 border-t border-slate-200 flex-shrink-0">
                   <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={prevPage}
                     disabled={currentPage === 0}
-                    className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 font-be-vietnam ${
+                    className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 font-be-vietnam flex items-center gap-2 relative overflow-hidden ${
                       currentPage === 0 
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer shadow-lg hover:shadow-xl'
                     }`}
                   >
-                    Trước
+                    {currentPage > 0 && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-500"></div>
+                    )}
+                    <ChevronLeft className="w-4 h-4 relative z-10" />
+                    <span className="relative z-10">Trước</span>
                   </motion.button>
 
                   <div className="flex space-x-2">
@@ -1033,23 +1102,28 @@ const DigitalInvitation = () => {
                   </div>
 
                   <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={nextPage}
                     disabled={currentPage === pages.length - 1}
-                    className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 font-be-vietnam flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 font-be-vietnam flex items-center gap-2 relative overflow-hidden ${
                       currentPage === pages.length - 1 
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer shadow-lg hover:shadow-xl'
                     }`}
                   >
-                    {currentPage === pages.length - 1 ? 'Hoàn thành' : 'Tiếp'}
-                    {currentPage < pages.length - 1 && <ChevronRight className="w-4 h-4" />}
+                    {currentPage < pages.length - 1 && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-500"></div>
+                    )}
+                    <span className="relative z-10">{currentPage === pages.length - 1 ? '🎉 Hoàn thành' : 'Tiếp'}</span>
+                    {currentPage < pages.length - 1 && <ChevronRight className="w-4 h-4 relative z-10" />}
                   </motion.button>
                 </div>
 
                 {/* Footer */}
                 <div className="bg-gradient-to-r from-slate-800 to-blue-900 text-white p-4 text-center flex-shrink-0">
                   <p className="text-sm opacity-90 font-be-vietnam">
-                    Thân mời bạn • Lưu Minh Nhiều • Full-Stack Developer tại Outsource Company 💙
+                    Thân mời bạn • from Lưu Minh Nhiều • Full-Stack Developer 💙
                   </p>
                   <p className="text-xs opacity-70 font-be-vietnam mt-1">
                     Java • JavaScript • C# • Python • ReactJS • VueJS • NextJS • NodeJS
