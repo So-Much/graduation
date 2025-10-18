@@ -43,7 +43,7 @@ const Slider = ({ children, totalSlides }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="relative w-full min-h-screen mobile-vh-100 overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Main content */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -61,18 +61,18 @@ const Slider = ({ children, totalSlides }) => {
       {/* Navigation arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-white/90 hover:bg-white shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer backdrop-blur-sm border border-white/20"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 rounded-full bg-white/90 hover:bg-white shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer backdrop-blur-sm border border-white/20"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-6 h-6 text-slate-600 group-hover:text-blue-800 transition-colors" />
+        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-slate-600 group-hover:text-blue-800 transition-colors" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-4 rounded-full bg-white/90 hover:bg-white shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer backdrop-blur-sm border border-white/20"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-4 rounded-full bg-white/90 hover:bg-white shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-pointer backdrop-blur-sm border border-white/20"
         aria-label="Next slide"
       >
-        <ChevronRight className="w-6 h-6 text-slate-600 group-hover:text-blue-800 transition-colors" />
+        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-slate-600 group-hover:text-blue-800 transition-colors" />
       </button>
 
       {/* Slide indicators */}
@@ -107,8 +107,8 @@ const Slider = ({ children, totalSlides }) => {
       </div>
 
       {/* Slide counter */}
-      <div className="absolute top-6 right-6 z-10 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-xl border border-white/20">
-        <span className="text-sm font-medium text-slate-700">
+      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-10 bg-white/90 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1 sm:py-2 shadow-xl border border-white/20">
+        <span className="text-xs sm:text-sm font-medium text-slate-700">
           {currentSlide + 1} / {totalSlides}
         </span>
       </div>

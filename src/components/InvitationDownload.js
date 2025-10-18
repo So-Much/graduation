@@ -44,7 +44,7 @@ const InvitationDownload = ({ onClose }) => {
     
     ctx.fillStyle = '#ffffff';
     ctx.font = '24px sans-serif';
-    ctx.fillText('Tham dự buổi lễ tốt nghiệp của So Much!', canvas.width / 2, 80);
+    ctx.fillText('Tham dự buổi lễ tốt nghiệp của SoMuch!', canvas.width / 2, 80);
     
     // Content
     ctx.fillStyle = '#1e293b';
@@ -54,7 +54,7 @@ const InvitationDownload = ({ onClose }) => {
     
     ctx.font = '18px sans-serif';
     ctx.fillStyle = '#64748b';
-    ctx.fillText('Full-Stack Developer tại Công ty Outsource', canvas.width / 2, 210);
+    ctx.fillText('Full-Stack Developer', canvas.width / 2, 210);
     
     // Event details
     ctx.fillStyle = '#1e293b';
@@ -65,7 +65,7 @@ const InvitationDownload = ({ onClose }) => {
     ctx.font = '16px sans-serif';
     ctx.fillStyle = '#374151';
     ctx.fillText('📅 Ngày: 31 tháng 10, 2025', canvas.width / 2, 290);
-    ctx.fillText('🕐 Giờ: 8:00 AM', canvas.width / 2, 315);
+    ctx.fillText('🕐 Giờ: Buổi chiều', canvas.width / 2, 315);
     ctx.fillText('📍 Địa điểm: Trường Đại học Tôn Đức Thắng', canvas.width / 2, 340);
     
     // Message
@@ -115,13 +115,13 @@ const InvitationDownload = ({ onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 mobile-safe-area"
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
-        className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+        className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl"
       >
         <div className="text-center">
           <motion.div

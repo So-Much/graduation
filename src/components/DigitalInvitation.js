@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Download, Heart, Sparkles, Star, GraduationCap, Calendar, MapPin, Clock, X } from 'lucide-react';
 import InvitationDownload from './InvitationDownload';
@@ -16,12 +16,12 @@ const DigitalInvitation = () => {
   const [isVideoMinimized, setIsVideoMinimized] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(false);
   const [videoPosition, setVideoPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isResizing, setIsResizing] = useState(false);
   const [videoSize, setVideoSize] = useState({ width: 200, height: 150 });
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeDirection, setResizeDirection] = useState('');
+  const [isResizingActive, setIsResizingActive] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const pages = [
     {
@@ -97,23 +97,7 @@ const DigitalInvitation = () => {
     setIsVideoMinimized(!isVideoMinimized);
   };
 
-  const handleMouseDown = (e) => {
-    if (e.target.classList.contains('resize-handle')) return;
-    setIsDragging(true);
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      setVideoPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
-      });
-    }
+  const handleMouseMove = useCallback((e) => {
     if (isResizing) {
       let newWidth = resizeStart.width;
       let newHeight = resizeStart.height;
@@ -133,16 +117,17 @@ const DigitalInvitation = () => {
       
       setVideoSize({ width: newWidth, height: newHeight });
     }
-  };
+  }, [isResizing, resizeStart, resizeDirection]);
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  const handleMouseUp = useCallback(() => {
     setIsResizing(false);
-  };
+    setIsResizingActive(false);
+  }, []);
 
-  const handleResizeStart = (e, direction) => {
+  const handleResizeStart = useCallback((e, direction) => {
     e.stopPropagation();
     setIsResizing(true);
+    setIsResizingActive(true);
     setResizeDirection(direction);
     setResizeStart({
       x: e.clientX,
@@ -150,28 +135,10 @@ const DigitalInvitation = () => {
       width: videoSize.width,
       height: videoSize.height
     });
-  };
+  }, [videoSize.width, videoSize.height]);
 
   // Touch events for mobile
-  const handleTouchStart = (e) => {
-    if (e.target.classList.contains('resize-handle')) return;
-    const touch = e.touches[0];
-    setIsDragging(true);
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDragOffset({
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
-    });
-  };
-
-  const handleTouchMove = (e) => {
-    if (isDragging) {
-      const touch = e.touches[0];
-      setVideoPosition({
-        x: touch.clientX - dragOffset.x,
-        y: touch.clientY - dragOffset.y
-      });
-    }
+  const handleTouchMove = useCallback((e) => {
     if (isResizing) {
       const touch = e.touches[0];
       let newWidth = resizeStart.width;
@@ -192,17 +159,18 @@ const DigitalInvitation = () => {
       
       setVideoSize({ width: newWidth, height: newHeight });
     }
-  };
+  }, [isResizing, resizeStart, resizeDirection]);
 
-  const handleTouchEnd = () => {
-    setIsDragging(false);
+  const handleTouchEnd = useCallback(() => {
     setIsResizing(false);
-  };
+    setIsResizingActive(false);
+  }, []);
 
-  const handleResizeTouchStart = (e, direction) => {
+  const handleResizeTouchStart = useCallback((e, direction) => {
     e.stopPropagation();
     const touch = e.touches[0];
     setIsResizing(true);
+    setIsResizingActive(true);
     setResizeDirection(direction);
     setResizeStart({
       x: touch.clientX,
@@ -210,11 +178,27 @@ const DigitalInvitation = () => {
       width: videoSize.width,
       height: videoSize.height
     });
+  }, [videoSize.width, videoSize.height]);
+
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
   };
 
-  // Add event listeners for dragging and resizing
+  const closeImageOverlay = () => {
+    setSelectedImage(null);
+  };
+
+  // Optimized drag handler
+  const handleDrag = useCallback((event, info) => {
+    setVideoPosition({
+      x: info.point.x - videoSize.width / 2,
+      y: info.point.y - videoSize.height / 2
+    });
+  }, [videoSize.width, videoSize.height]);
+
+  // Add event listeners for resizing
   useEffect(() => {
-    if (isDragging || isResizing) {
+    if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       document.addEventListener('touchmove', handleTouchMove);
@@ -226,14 +210,50 @@ const DigitalInvitation = () => {
         document.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isDragging, isResizing, dragOffset, resizeStart]);
+  }, [isResizing, resizeStart]);
 
   // Handle mounting only
   useEffect(() => {
     setIsMounted(true);
     // Set initial position for video (bottom right)
-    setVideoPosition({ x: window.innerWidth - 250, y: window.innerHeight - 200 });
+    if (typeof window !== 'undefined') {
+      setVideoPosition({ 
+        x: window.innerWidth - 250, 
+        y: window.innerHeight - 200 
+      });
+    }
   }, []);
+
+  // Handle keyboard events for image overlay
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && selectedImage) {
+        closeImageOverlay();
+      }
+    };
+
+    if (selectedImage) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [selectedImage]);
+
+  // Handle window resize for video constraints
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        // Keep video within bounds when window resizes
+        const newX = Math.min(videoPosition.x, window.innerWidth - videoSize.width);
+        const newY = Math.min(videoPosition.y, window.innerHeight - videoSize.height - 24);
+        setVideoPosition({ x: Math.max(0, newX), y: Math.max(0, newY) });
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [videoPosition, videoSize]);
 
   // Show loading state during hydration
   if (!isMounted) {
@@ -245,7 +265,7 @@ const DigitalInvitation = () => {
   }
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-amber-900 relative overflow-hidden">
+    <div className="w-full min-h-screen mobile-vh-100 bg-gradient-to-br from-slate-900 via-blue-900 to-amber-900 relative overflow-x-hidden overflow-y-auto">
       {/* Background decorations */}
       {isMounted && (
         <div className="absolute inset-0">
@@ -300,15 +320,27 @@ const DigitalInvitation = () => {
 
       {/* Floating video - Draggable, resizable and minimizable */}
       <motion.div 
-        className="fixed z-30 cursor-move"
+        className={`fixed z-30 hidden sm:block video-drag-container ${
+          isResizing ? 'cursor-default' : 'cursor-move'
+        }`}
+        data-resizing={isResizing}
         style={{
           left: videoPosition.x,
-          top: videoPosition.y,
-          transform: isDragging ? 'scale(1.05)' : 'scale(1)'
+          top: videoPosition.y
         }}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        whileHover={{ scale: 1.02 }}
+        drag={!isResizing}
+        dragMomentum={false}
+        dragElastic={0.1}
+        dragPropagation={false}
+        dragConstraints={{
+          left: 0,
+          right: typeof window !== 'undefined' ? window.innerWidth - videoSize.width : 0,
+          top: 0,
+          bottom: typeof window !== 'undefined' ? window.innerHeight - videoSize.height - 24 : 0
+        }}
+        onDrag={handleDrag}
+        whileHover={!isResizing ? { scale: 1.02 } : {}}
+        whileDrag={!isResizing ? { scale: 1.05, rotate: 2 } : {}}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         {isVideoMinimized ? (
@@ -363,10 +395,14 @@ const DigitalInvitation = () => {
           </div>
         ) : (
           // Full video player
-          <div 
-            className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border-2 border-purple-200 shadow-lg relative"
-            style={{ width: videoSize.width, height: videoSize.height + 24 }}
-          >
+           <motion.div 
+             className={`bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border-2 shadow-lg relative video-resize-container ${
+               isResizingActive ? 'border-purple-400 shadow-2xl' : 'border-purple-200'
+             }`}
+             style={{ width: videoSize.width, height: videoSize.height + 24 }}
+             animate={isResizingActive ? { scale: 1.02 } : { scale: 1 }}
+             transition={{ duration: 0.2 }}
+           >
             <div className="relative rounded-lg overflow-hidden w-full h-full">
               <video 
                 ref={(video) => {
@@ -439,72 +475,132 @@ const DigitalInvitation = () => {
                 </motion.button>
               </div>
               
-              <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs font-be-vietnam">
-                15s {isVideoMuted ? '🔇' : '🔊'}
-              </div>
+               <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs font-be-vietnam">
+                 15s {isVideoMuted ? '🔇' : '🔊'}
+               </div>
+               
+               {/* Size indicator when resizing */}
+               {isResizingActive && (
+                 <motion.div
+                   initial={{ opacity: 0, scale: 0.8 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   exit={{ opacity: 0, scale: 0.8 }}
+                   className="absolute top-2 left-2 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-be-vietnam shadow-lg"
+                 >
+                   {Math.round(videoSize.width)} × {Math.round(videoSize.height)}
+                 </motion.div>
+               )}
             </div>
             
-            {/* Resize handles - 4 corners */}
+             {/* Resize handles - 4 corners with Framer Motion */}
             {/* Top-left */}
-            <div 
-              className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize resize-handle"
-              onMouseDown={(e) => handleResizeStart(e, 'nw')}
-              onTouchStart={(e) => handleResizeTouchStart(e, 'nw')}
+             <motion.div 
+               className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize resize-handle"
+               onMouseDown={(e) => {
+                 e.stopPropagation();
+                 handleResizeStart(e, 'nw');
+               }}
+               onTouchStart={(e) => {
+                 e.stopPropagation();
+                 handleResizeTouchStart(e, 'nw');
+               }}
+               whileHover={{ scale: 1.2 }}
+               whileTap={{ scale: 0.9 }}
               style={{
                 background: 'linear-gradient(135deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
                 borderRadius: '8px 0 0 0'
               }}
             >
               <div className="w-full h-full flex items-start justify-start">
-                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+                 <motion.div 
+                   className="w-2 h-2 bg-purple-400 rounded-full opacity-60"
+                   animate={{ opacity: [0.6, 1, 0.6] }}
+                   transition={{ duration: 2, repeat: Infinity }}
+                 ></motion.div>
               </div>
-            </div>
+             </motion.div>
 
             {/* Top-right */}
-            <div 
-              className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize resize-handle"
-              onMouseDown={(e) => handleResizeStart(e, 'ne')}
-              onTouchStart={(e) => handleResizeTouchStart(e, 'ne')}
+             <motion.div 
+               className="absolute top-0 right-0 w-4 h-4 cursor-ne-resize resize-handle"
+               onMouseDown={(e) => {
+                 e.stopPropagation();
+                 handleResizeStart(e, 'ne');
+               }}
+               onTouchStart={(e) => {
+                 e.stopPropagation();
+                 handleResizeTouchStart(e, 'ne');
+               }}
+               whileHover={{ scale: 1.2 }}
+               whileTap={{ scale: 0.9 }}
               style={{
                 background: 'linear-gradient(-135deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
                 borderRadius: '0 8px 0 0'
               }}
             >
               <div className="w-full h-full flex items-start justify-end">
-                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+                 <motion.div 
+                   className="w-2 h-2 bg-purple-400 rounded-full opacity-60"
+                   animate={{ opacity: [0.6, 1, 0.6] }}
+                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                 ></motion.div>
               </div>
-            </div>
+             </motion.div>
 
             {/* Bottom-left */}
-            <div 
-              className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize resize-handle"
-              onMouseDown={(e) => handleResizeStart(e, 'sw')}
-              onTouchStart={(e) => handleResizeTouchStart(e, 'sw')}
+             <motion.div 
+               className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize resize-handle"
+               onMouseDown={(e) => {
+                 e.stopPropagation();
+                 handleResizeStart(e, 'sw');
+               }}
+               onTouchStart={(e) => {
+                 e.stopPropagation();
+                 handleResizeTouchStart(e, 'sw');
+               }}
+               whileHover={{ scale: 1.2 }}
+               whileTap={{ scale: 0.9 }}
               style={{
                 background: 'linear-gradient(45deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
                 borderRadius: '0 0 0 8px'
               }}
             >
               <div className="w-full h-full flex items-end justify-start">
-                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+                 <motion.div 
+                   className="w-2 h-2 bg-purple-400 rounded-full opacity-60"
+                   animate={{ opacity: [0.6, 1, 0.6] }}
+                   transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                 ></motion.div>
               </div>
-            </div>
+             </motion.div>
 
             {/* Bottom-right */}
-            <div 
-              className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize resize-handle"
-              onMouseDown={(e) => handleResizeStart(e, 'se')}
-              onTouchStart={(e) => handleResizeTouchStart(e, 'se')}
+             <motion.div 
+               className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize resize-handle"
+               onMouseDown={(e) => {
+                 e.stopPropagation();
+                 handleResizeStart(e, 'se');
+               }}
+               onTouchStart={(e) => {
+                 e.stopPropagation();
+                 handleResizeTouchStart(e, 'se');
+               }}
+               whileHover={{ scale: 1.2 }}
+               whileTap={{ scale: 0.9 }}
               style={{
                 background: 'linear-gradient(-45deg, transparent 30%, #8b5cf6 30%, #8b5cf6 40%, transparent 40%, transparent 60%, #8b5cf6 60%, #8b5cf6 70%, transparent 70%)',
                 borderRadius: '0 0 8px 0'
               }}
             >
               <div className="w-full h-full flex items-end justify-end">
-                <div className="w-2 h-2 bg-purple-400 rounded-full opacity-60"></div>
+                 <motion.div 
+                   className="w-2 h-2 bg-purple-400 rounded-full opacity-60"
+                   animate={{ opacity: [0.6, 1, 0.6] }}
+                   transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                 ></motion.div>
               </div>
-            </div>
-          </div>
+             </motion.div>
+           </motion.div>
         )}
       </motion.div>
 
@@ -528,7 +624,7 @@ const DigitalInvitation = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
               
               {/* Main card */}
-              <div className="relative bg-gradient-to-br from-white via-amber-50 to-yellow-50 rounded-3xl p-12 card-shadow golden-border luxury-glow paper-texture max-w-md w-full">
+              <div className="relative bg-gradient-to-br from-white via-amber-50 to-yellow-50 rounded-3xl p-6 sm:p-8 md:p-12 card-shadow golden-border luxury-glow paper-texture max-w-md w-full mobile-safe-area">
                 {/* Ribbon decoration */}
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
@@ -615,14 +711,14 @@ const DigitalInvitation = () => {
             animate={{ scale: 1, opacity: 1, rotateY: 0 }}
             exit={{ scale: 0.8, opacity: 0, rotateY: 15 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="absolute inset-0 flex items-center justify-center p-8"
+            className="absolute inset-0 flex items-center justify-center p-2 sm:p-4 md:p-8 mobile-safe-area"
           >
-            <div className="relative max-w-4xl w-full">
+            <div className="relative max-w-4xl w-full h-full flex flex-col">
               {/* Card shadow */}
               <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-3xl blur-2xl opacity-20"></div>
               
               {/* Main invitation card */}
-              <div className="relative bg-gradient-to-br from-white via-amber-50 to-yellow-50 rounded-3xl card-shadow golden-border luxury-glow paper-texture overflow-hidden">
+              <div className="relative bg-gradient-to-br from-white via-amber-50 to-yellow-50 rounded-3xl card-shadow golden-border luxury-glow paper-texture overflow-hidden flex flex-col h-full">
                 {/* Close button */}
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -633,7 +729,7 @@ const DigitalInvitation = () => {
                   <X className="w-5 h-5 text-slate-600" />
                 </motion.button>
                 {/* Header */}
-                <div className="bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 text-white p-8 relative">
+                <div className="bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 text-white p-4 sm:p-6 md:p-8 relative flex-shrink-0">
                   {/* Confetti animation */}
                   <div className="absolute inset-0 overflow-hidden">
                     {[...Array(8)].map((_, i) => (
@@ -672,14 +768,14 @@ const DigitalInvitation = () => {
                         THÂN MỜI
                       </h1>
                       <h2 className="text-2xl md:text-3xl font-light font-be-vietnam">
-                        Tham dự buổi lễ tốt nghiệp của So Much!
+                        Tham dự buổi lễ tốt nghiệp của SoMuch!
                       </h2>
                     </motion.div>
                   </div>
                 </div>
 
                  {/* Content based on current page */}
-                 <div className="p-4 sm:p-6 md:p-8 max-h-[500px] sm:max-h-[600px] overflow-y-auto invitation-scroll pb-20 sm:pb-8">
+                 <div className="p-4 sm:p-6 md:p-8 flex-1 overflow-y-auto invitation-scroll pb-20 sm:pb-8">
                   <AnimatePresence mode="wait">
                     {currentPage === 0 && (
                       <motion.div
@@ -694,14 +790,14 @@ const DigitalInvitation = () => {
                           Lưu Minh Nhiều
                         </h3>
                         <p className="text-lg text-slate-600 mb-6 font-be-vietnam">
-                          Full-Stack Developer tại Công ty Outsource 💻✨
+                          Full-Stack Developer 💻✨
                         </p>
                         <div className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-6 py-3 rounded-full inline-block mb-8 font-be-vietnam">
                           <GraduationCap className="w-5 h-5 inline mr-2" />
                           Junior → Senior Developer (Đang phát triển)
                         </div>
                         <p className="text-xl text-slate-700 leading-relaxed font-be-vietnam">
-                          Xin chào bạn! Mình là một Full-Stack Developer đang làm việc tại công ty outsource. 
+                          Xin chào bạn! Mình là một Full-Stack Developer đang làm việc tại một công ty outsource. 
                           Sau 4 năm học tập và kinh nghiệm thực tế, mình rất vui được mời bạn đến chung vui cùng mình trong ngày trọng đại này! 🎉
                         </p>
                         <div className="mt-6">
@@ -742,7 +838,7 @@ const DigitalInvitation = () => {
                           <div className="bg-white/80 rounded-xl p-4 shadow-lg border border-amber-100 hover:shadow-xl transition-all duration-300">
                             <Clock className="w-6 h-6 text-amber-600 mx-auto mb-2" />
                             <h4 className="font-semibold text-slate-800 mb-1 font-be-vietnam text-sm">Giờ</h4>
-                            <p className="text-slate-600 font-be-vietnam text-sm">8:00 AM</p>
+                            <p className="text-slate-600 font-be-vietnam text-sm">Buổi chiều</p>
                           </div>
                           <div className="bg-white/80 rounded-xl p-4 shadow-lg border border-slate-100 hover:shadow-xl transition-all duration-300">
                             <MapPin className="w-6 h-6 text-slate-600 mx-auto mb-2" />
@@ -828,7 +924,9 @@ const DigitalInvitation = () => {
                             <motion.div
                               key={index}
                               whileHover={{ scale: 1.05 }}
-                              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleImageClick(image)}
+                              className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                             >
                               <img 
                                 src={image.src} 
@@ -838,6 +936,12 @@ const DigitalInvitation = () => {
                               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                               <div className="absolute bottom-1 left-1 text-white text-xs font-be-vietnam">
                                 {image.label}
+                              </div>
+                              {/* Click indicator */}
+                              <div className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M15 12c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3 3 1.343 3 3zm-3-9c-5.514 0-10 4.486-10 10s4.486 10 10 10 10-4.486 10-10-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
+                                </svg>
                               </div>
                             </motion.div>
                           ))}
@@ -904,7 +1008,7 @@ const DigitalInvitation = () => {
                 </div>
 
                  {/* Navigation */}
-                 <div className="flex justify-between items-center p-4 sm:p-6 bg-slate-50 border-t border-slate-200">
+                 <div className="flex justify-between items-center p-4 sm:p-6 bg-slate-50 border-t border-slate-200 flex-shrink-0">
                   <motion.button
                     onClick={prevPage}
                     disabled={currentPage === 0}
@@ -943,7 +1047,7 @@ const DigitalInvitation = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gradient-to-r from-slate-800 to-blue-900 text-white p-4 text-center">
+                <div className="bg-gradient-to-r from-slate-800 to-blue-900 text-white p-4 text-center flex-shrink-0">
                   <p className="text-sm opacity-90 font-be-vietnam">
                     Thân mời bạn • Lưu Minh Nhiều • Full-Stack Developer tại Outsource Company 💙
                   </p>
@@ -964,13 +1068,13 @@ const DigitalInvitation = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 mobile-safe-area"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center"
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center"
             >
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
@@ -986,7 +1090,7 @@ const DigitalInvitation = () => {
               
               <p className="text-slate-600 mb-6 font-be-vietnam">
                 Mình rất vui khi biết bạn sẽ tham dự lễ tốt nghiệp! 
-                Hẹn gặp bạn vào ngày 31/10/2025 lúc 8:00 AM tại trường Đại học Tôn Đức Thắng! 🎓
+                Hẹn gặp bạn vào ngày 31/10/2025 vào buổi chiều tại trường Đại học Tôn Đức Thắng! 🎓
               </p>
               
               <motion.button
@@ -1006,6 +1110,83 @@ const DigitalInvitation = () => {
       <AnimatePresence>
         {showDownload && (
           <InvitationDownload onClose={() => setShowDownload(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Image overlay modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 mobile-safe-area"
+            onClick={closeImageOverlay}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="relative max-w-4xl w-full h-full flex flex-col image-overlay-container"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={closeImageOverlay}
+                className="absolute top-4 right-4 z-20 p-3 rounded-full bg-white/90 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <X className="w-6 h-6 text-slate-600" />
+              </motion.button>
+
+              {/* Image container */}
+              <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+                <motion.img
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0.8 }}
+                  src={selectedImage.src}
+                  alt={selectedImage.label}
+                  className="max-w-full max-h-full w-auto h-auto object-contain rounded-xl shadow-2xl image-overlay-img"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: 'calc(100vh - 200px)',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain'
+                  }}
+                  onLoad={(e) => {
+                    const img = e.target;
+                    const container = img.parentElement;
+                    const containerRect = container.getBoundingClientRect();
+                    const imgAspectRatio = img.naturalWidth / img.naturalHeight;
+                    const containerAspectRatio = containerRect.width / containerRect.height;
+                    
+                    if (imgAspectRatio > containerAspectRatio) {
+                      // Landscape image - fit to width
+                      img.style.maxWidth = '100%';
+                      img.style.maxHeight = 'none';
+                    } else {
+                      // Portrait image - fit to height
+                      img.style.maxHeight = '100%';
+                      img.style.maxWidth = 'none';
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Image label */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 mx-4 mb-4 text-center">
+                <h3 className="text-lg font-semibold text-slate-800 font-be-vietnam">
+                  {selectedImage.label}
+                </h3>
+                <p className="text-sm text-slate-600 font-be-vietnam mt-1">
+                  Kỷ niệm đại học
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
