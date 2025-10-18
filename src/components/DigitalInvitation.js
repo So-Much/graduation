@@ -902,24 +902,24 @@ const DigitalInvitation = () => {
                          {/* Photo grid - All 18 memories */}
                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 mb-6">
                           {[
-                            { src: '/1D80D4D1-3BEA-4867-A4F2-BFAFA991C5CE.jpg', label: 'Coffe time' },
                             { src: '/2AC239C5-E7BE-4515-92AB-B3243ADF1C15.jpg', label: '"Em bé ngây thơ"' },
+                            { src: '/63F1D7FE-0673-4391-84D8-38E7664E51CC.jpg', label: 'Thằng ku điệu' },
+                            { src: '/4492832B-D956-4B7A-B4E3-94C8473BDE8E.jpg', label: 'Năm nhất' },
+                            { src: '/774ADDBF-AAB6-42CA-B939-3C1E7A22993C.jpg', label: 'Ayounghaseyo' },
+                            { src: '/1D80D4D1-3BEA-4867-A4F2-BFAFA991C5CE.jpg', label: 'Coffe time' },
                             { src: '/2FE681F1-566E-45E0-9615-250475017D25.jpg', label: '30/4-1/5' },
                             { src: '/8DF9CBD1-0F6D-4EF2-A661-F09A1AB18FEA.jpg', label: 'Lửa trại' },
-                            { src: '/9B545132-DD17-4DCD-B227-CF638ACCF429.jpg', label: 'Về nhà' },
                             { src: '/10E5A8CC-D183-493C-B8E7-C867177EC8A3.jpg', label: 'Bình minh' },
-                            { src: '/63F1D7FE-0673-4391-84D8-38E7664E51CC.jpg', label: 'Em bé đẹp trai' },
-                            { src: '/307D0197-65A9-45BD-A0BC-0D17DCF68763.jpg', label: 'Hello Nha Trang' },
-                            { src: '/382C1847-11B8-4FA1-82EE-28AF3A5AE8CE.jpg', label: 'Trọ cũ nè' },
-                            { src: '/774ADDBF-AAB6-42CA-B939-3C1E7A22993C.jpg', label: 'Ayounghaseyo' },
-                            { src: '/4492832B-D956-4B7A-B4E3-94C8473BDE8E.jpg', label: 'Năm nhất' },
-                            { src: '/A978C91C-1E23-4DCE-9DA6-17344E392AA2.jpg', label: 'Du lịch' },
-                            { src: '/ADD46894-B346-46EB-BA55-4262A07A6635.jpg', label: 'Té xe nè' },
                             { src: '/B45EE88D-E1FF-4E43-B5C6-74FBA6CCAADA.jpg', label: 'Nhộn nhịp tĩnh lặng' },
+                            { src: '/ADD46894-B346-46EB-BA55-4262A07A6635.jpg', label: 'Lạc quan dữ' },
                             { src: '/B76D0E74-093D-47FE-9E8E-A6A989965C3F.jpg', label: 'Hoàng hôn' },
+                            { src: '/9B545132-DD17-4DCD-B227-CF638ACCF429.jpg', label: 'Về nhà' },
                             { src: '/CE0D6D98-0D15-4F64-AA96-01C4B6073610.jpg', label: 'Selfie' },
-                            { src: '/F5F27D41-2461-4B26-9EB9-30C59FCBC13D.jpg', label: 'Thức dậy nè' },
-                            { src: '/FF5A0748-D82B-4508-935A-B9F5860C5283.jpg', label: 'An Giang' }
+                            { src: '/F5F27D41-2461-4B26-9EB9-30C59FCBC13D.jpg', label: 'Tổ chim' },
+                            { src: '/382C1847-11B8-4FA1-82EE-28AF3A5AE8CE.jpg', label: 'Avatar nè' },
+                            { src: '/A978C91C-1E23-4DCE-9DA6-17344E392AA2.jpg', label: 'Du lịch' },
+                            { src: '/FF5A0748-D82B-4508-935A-B9F5860C5283.jpg', label: 'An Giang' },
+                            { src: '/307D0197-65A9-45BD-A0BC-0D17DCF68763.jpg', label: 'Hello Nha Trang' },
                           ].map((image, index) => (
                             <motion.div
                               key={index}

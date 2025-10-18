@@ -78,8 +78,8 @@ const InvitationDownload = ({ onClose }) => {
     // Footer
     ctx.fillStyle = '#1e293b';
     ctx.font = '14px sans-serif';
-    ctx.fillText('Thân mời bạn • Lưu Minh Nhiều • Full-Stack Developer', canvas.width / 2, 480);
-    ctx.fillText('Java • JavaScript • C# • Python • ReactJS • VueJS • NextJS', canvas.width / 2, 500);
+    ctx.fillText('Lưu Minh Nhiều • Full-Stack Developer • Thân mời bạn', canvas.width / 2, 480);
+    ctx.fillText('Java • JavaScript • C# • Python • ReactJS • VueJS • NextJS • NodeJS', canvas.width / 2, 500);
     
     // Decorative elements
     ctx.fillStyle = '#fbbf24';
